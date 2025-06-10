@@ -1,0 +1,12 @@
+{
+  "name": "order-service",
+  "version": "1.0.0",
+  "description": "Servicio es encargado para recibir y gestionar el estado de los pedidos",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
