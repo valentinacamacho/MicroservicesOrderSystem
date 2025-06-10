@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  order-service:
+    build: ./order-service
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      RABBITMQ_URL: amqp://user:password@rabbitmq:5672
+      ORDER_CREATED_QUEUE: order_created_queue
+      ORDER_STATUS_UPDATE_QUEUE: order_status_update_queue
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    command: npm run dev
+   
