@@ -4,7 +4,9 @@
   "description": "Servicio es encargado para recibir y gestionar el estado de los pedidos",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node order-service/index.js",
+    "dev": "nodemon order-service/index.js"
   },
   "keywords": [],
   "author": "",
