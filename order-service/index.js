@@ -11,10 +11,11 @@ let channelRabbit;
 
 async function connectRabbitMQ(){
     try{
-      
-        channelRabbit = await connection.createcChannel();
+        connection = await amqp.connect(process.env.RABBITMQ_URL);
+        channelRabbit = await connection.createChannel();
 
         console.log("Order Service: Conectado a RabbitMQ con éxito");
+        
     } catch (error){
         console.log("Order Service: Error al conectar a RabbitMQ", error.message);
     }
