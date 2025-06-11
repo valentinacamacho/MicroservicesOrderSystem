@@ -1,31 +1,70 @@
 version: '3.8'
+
 services:
   rabbitmq:
     image: rabbitmq:3-management
-    hostname: rabbitmq
+    hostname: rabbitmq 
     ports:
-      - "5672:5672"
-      - "15672:15672"
+    # Puerto estándar de RabbitMQ para conexiones AMQP
+      - "5672:5672" 
+      # Puerto de la interfaz de administración web (Management UI)
+      - "15672:15672" 
     environment:
       RABBITMQ_DEFAULT_USER: user
       RABBITMQ_DEFAULT_PASS: password
+    # Configuración del Healthcheck para RabbitMQ:
+    # Esto asegura que order-service solo inicie cuando RabbitMQ esté completamente listo
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
+    # Volumen es nombrado para la persistencia de datos de RabbitMQ ---
+    # Esto ayuda a prevenir problemas de permisos y asegura que los datos de RabbitMQ
+    # persistan entre reinicios y reconstrucciones de contenedores.
+    volumes:
+    # Mapea el volumen nombrado 'rabbitmq_data' a la ruta de datos interna de RabbitMQ
+      - rabbitmq_data:/var/lib/rabbitmq 
+    # Conecta este servicio a la red definida abajo
+    networks:
+      - microservices_network 
 
   order-service:
-    build: ./order-service
+    build:
+    # Ruta a tu carpeta de order-service con Dockerfile
+      context: ./order-service 
+      dockerfile: Dockerfile
     ports:
+     # Mapea el puerto 3000 del contenedor al puerto 3000 de la máquina host
       - "3000:3000"
     environment:
       PORT: 3000
+      # URL de conexión a RabbitMQ, usando el nombre del servicio 'rabbitmq' y el puerto 5672
       RABBITMQ_URL: amqp://user:password@rabbitmq:5672
-      ORDER_CREATED_QUEUE: order_created_queue
-      ORDER_STATUS_UPDATE_QUEUE: order_status_update_queue
+      # Nombre de la cola para nuevas órdenes
+      ORDER_CREATED_QUEUE: order_created_queue 
+      # Nombre de la cola para actualizaciones de estado
+      ORDER_STATUS_UPDATE_QUEUE: order_status_update_queue 
+    # Asegura que order-service solo inicie si rabbitmq está saludable
     depends_on:
       rabbitmq:
         condition: service_healthy
-    command: npm run dev
-   
+    # El comando para iniciar la aplicación Node.js
+    command: ["npm", "run", "dev"] # Asegúrate de que esto sea una lista (array)
+    networks:
+      - microservices_network # Conecta este servicio a la misma red que rabbitmq
+    # Configuración de volúmenes para el desarrollo (hot-reloading)
+    volumes:
+     # Mapea la carpeta local 'order-service' al '/app' del contenedor
+      - ./order-service:/app
+      # Evita que los 'node_modules' del host sobrescriban los del contenedor, permitiendo que 'npm install' funcione dentro del contenedor
+      - /app/node_modules 
+
+
+volumes:
+  rabbitmq_data:
+    driver: local 
+
+networks:
+  microservices_network:
+    driver: bridge 
