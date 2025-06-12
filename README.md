@@ -269,7 +269,9 @@ Para depurar o monitorear lo que está sucediendo dentro de los contenedores, pu
 ```sh
 docker-compose logs -f
 ```
+
 3. Para ver los logs de un servicio específico en tiempo real como el servicio de `order-service` o `rabbitMQ`:
+
 ```
 docker-compose logs -f order-service  
 # Para el Order Service
@@ -277,17 +279,18 @@ docker-compose logs -f order-service
 docker-compose logs -f rabbitmq  
 # Para RabbitMQ
 ```
+
 ### 7. Probar el servicio
 Una vez que ambos servicios estén corriendo y estables y el `order-service` muestre **"Escuchando http://localhost:3000"** probemolo:
 
-    1. Abre Postman 
-    2. Envía una petición `POST` con los siguientes detalles:
+1. Abre Postman
+2. Envía una petición `POST` con los siguientes detalles:
     - **Método:** `POST`
     - **URL:** http://localhost:3000/orders
     - **Headers:**
-        - **Key:**  Content-Type
-        - **value:** application/json
-    - Body (raw JSON)
+        - **Key:** Content-Type
+        - **Value:** application/json
+    - **Body** (raw JSON)
 
 > [!NOTE]
 > Coloca el nombre y la cantidad de producto que desees en el valor de la clave.
@@ -305,9 +308,9 @@ Una vez que ambos servicios estén corriendo y estables y el `order-service` mue
 
 5. **Verifica RabbitMQ (opcional):** Accede a la interfaz web de RabbitMQ en `http://localhost:15672`.
 
-        1.  Ingresa usuario: user
-        2.  Ingresa contraseña: password
-        3.  Dirigete a la petaña de **QUEUES** Y comprueba que la cola `order_created_queue` tiene mensajes en la columna `Ready`
+   - Ingresa usuario: user
+   - Ingresa contraseña: password
+   - Dirigete a la petaña de **QUEUES** Y comprueba que la cola `order_created_queue` tiene mensajes en la columna `Ready`
 
 <p style="text-align: right;">
   <a href="#readme-top">volver arriba</a>
