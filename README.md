@@ -149,15 +149,30 @@ Para ejecutar y probar este proyecto, necesitarás las siguientes herramientas i
 
 ### Instalación
 
-1. **Clonar el repositorio**
+### 1. Clonar el repositorio
+- Clonar el repositorio de la URL correspondiente ya que es un ejemplo de como clonar el proyecto.
 ```sh
 git clone https://github.com/usuario/nombre-del-repo.git
 ```
 
+### 2. Navega al directorio raíz del proyecto 
+
+Este directorio es llamado **microservicesordersystem**, es donde se encuentra el archivo docker-compose.yml, que define todos los servicios.
+
+1. Navega desde tu terminal hasta llegar al directorio donde se encuentran los servicios.
+
+```sh 
+    cd microservicesordersystem
+```
+
 2. **Configura el archivo .env**<br>
 Tu archivo .env está configurado en `.gitignore` por seguridad - contiene credenciales y configuraciones sensibles. **Necesitas crearlo manualmente**
--  En la raíz de tu proyecto dentro del directorio `order-service`, crea un directorio llamado .env
-coloca en la terminal lo siguiente:
+-  En la raíz de tu proyecto **microservicesordersystem** dentro del directorio `order-service`, se encuentra el archivo `.env.example` donde se encuentra un ejemplo como debe de quedar las variables de entorno.
+
+> [!IMPORTANT]
+> síNo se encuentra el archivo `.env.example` crea un directorio llamado .env
+- En la terminal de tu preferencia como `CMD` o la terminal del desarrollo de tu entorno
+- Coloca el siguiente comando para crear el archivo:
 
     ```sh
     touch .env
@@ -179,37 +194,63 @@ coloca en la terminal lo siguiente:
 - **ORDER_CREATE_QUEUE:** Nombre de la cola a la que el `order-service` enviara los mensajes de órdenes creadas.
 - **ORDER_STATUS_UPSATE_QUEUE:** Nombre de la cola de la que el `òrder-service` podría consumir mensaje de actualización de estado.
 
-### Instalar dependencias - Manejo Docker
+### 3. Instalar Dependencias Manejo Automático con Docker
 
-cuando se usa Docker Compose, las dependencias de Node.js como:(`èxpress`,`amqplib`,`dotenv`) se instalan automaticamnte dentro del contenedor Docker durante la fase de construcción de la imagen es definida por: `Dockerfile de order-service`
-    - nota
-    -No necesitar ejecutar `npm install` manualmente en tu máquina local en el directorio `order-service` si solo vas a usar Docker Compose para ejecutarlo
+Cuando se usa Docker Compose, las dependencias de Node.js como:(`èxpress`,`amqplib`,`dotenv`) se instalan automaticamnte dentro del contenedor Docker durante la fase de construcción de la imagen es definida por: `Dockerfile de order-service`
+    -nota
+    -No necesita ejecutar `npm install` manualmente en tu máquina local en el directorio `order-service` si solo vas a usar Docker Compose para ejecutarlo
 
 > [!NOTE]
 > si, por alguna razón quisieras ejecutar el `order-service` directamenrte en tu máquina local (sin Docker)  para depuración o desarrollo especifico, considero que necesites ir al directorio `order-service` y ejecutar lo siguiente: 
 
-3. Instalar paquetes NPM
+1. Instalar paquetes NPM
    ```sh
    cd order-service
    npm install
    ```
-4. **Levantar y usar los servidores con Docker Compose**
+2. Regresa al directorio raíz del proyecto para los siguientes pasos:
+   ```sh
+   cd ..
+   ```
+
+### 4. Levantar y usar los servidores con Docker Compose
+
 Este es el paso principal para poner en marcha el sistema:
- - Asegurate de estar en el directorio raíz de tu proyecto donde se encuentra `docker-compose.yml`
+ - Asegurate de estar en el directorio raíz del proyecto `microservicesordersystem` para que Docker Compose pueda encontrar y orquestar todos los servicios definidos en  `docker-compose.yml`
 
- - Limpia cualquier entorno Docker previo es para evitar algún conflicto y asegurar el inicio limpio, especialmente con volumenes de RabbitMQ.
+ >[!IMPORTANT]
+ >El proyecto `microservicesordersystem` contiene todos los servicios necesarios **(order-service y rabbitmq)** como carpetas o referencias en el `docker-compose.yml`
+
+1. Limpia cualquier entorno de Docker previo:
+2.  Asegúrate de estar en el directorio raíz del proyecto, donde se encuentra el archivo docker-compose.yml.
+
+3. Limpia cualquier entorno Docker previo (opcional, pero altamente recomendado para evitar conflictos y asegurar un inicio totalmente limpio, especialmente con volúmenes de RabbitMQ).
+
+4. Ejecuta los siguientes comandos ***uno por uno** en tu terminal:
+
+>[!IMPORTANT]
+> Explicación de cada comando para limpiar cualquier entorno de Docker
  
- -Ejecuta uno por uno en la terminal para que haya conflicto. 
-
 ```
 docker-compose down --rmi all --volumes
+# Detiene y elimina contenedores, redes, volúmenes anónimos e imágenes creadas por Compose.
+
 docker system prune --force --all
+# Limpia el sistema Docker de datos "colgando" (cachés de construcción, imágenes no usadas, etc.).
+
 docker volume prune --force
+# Limpia volúmenes no usados (anónimos).
+
 docker volume rm microservicesordersystem_rabbitmq_data --force
+# Elimina específicamente el volumen persistente de RabbitMQ para un inicio totalmente limpio.
 ```
 
-5. **Construye y levanta los contenedores:**<br>
--Coloca en la terminal el siguiente comando.
+
+
+### 5. Construye y levanta los contenedores
+
+Este comando construirá las imágenes Docker para los servicios (si es la primera vez o si hay cambios en los Dockerfile) y luego iniciará los contenedores de **rabbitmq** y **order-service**. El order-service esperará a que rabbitmq esté completamente saludable antes de iniciarse
+
 
 ```
 docker-compose up --build
@@ -218,14 +259,34 @@ docker-compose up --build
 - Este comando construira las imágenes Docker para los servicios
 - Observa los logs en la termina. Deberias ver que rabbitmq se inicializa y luego el `order-service` se conecta a RabbitMQ con éxito y donde escucha peticiones de HTTP en `http://localhost:3000`
 
-6. **Probar el servicio**<br>
-Una vez que ambos servicios estén corriendo y estables y el `order-service` muestre "Escuchando http://localhost:3000" probemolo:
+### 6. Verificar los Servicios de los logs
+Para depurar o monitorear lo que está sucediendo dentro de los contenedores, puedes usar el comando `docker-compose logs`.
+
+1. Abre una SEGUNDA terminal (también con permisos de administrador y en el directorio raíz del proyecto) para ver los logs sin interrumpir el proceso `docker-compose up --build`.
+
+2. Para ver los logs de todos los servicios combinados (como en la primera terminal) coloca el siguiente comando:
+
+```sh
+docker-compose logs -f
+```
+3. Para ver los logs de un servicio específico en tiempo real como el servicio de `order-service` o `rabbitMQ`:
+```
+docker-compose logs -f order-service  
+# Para el Order Service
+
+docker-compose logs -f rabbitmq  
+# Para RabbitMQ
+```
+### 7. Probar el servicio
+Una vez que ambos servicios estén corriendo y estables y el `order-service` muestre **"Escuchando http://localhost:3000"** probemolo:
 
     1. Abre Postman 
     2. Envía una petición `POST` con los siguientes detalles:
     - **Método:** `POST`
     - **URL:** http://localhost:3000/orders
     - **Headers:**
+        - **Key:**  Content-Type
+        - **value:** application/json
     - Body (raw JSON)
 
 > [!NOTE]
@@ -242,10 +303,11 @@ Una vez que ambos servicios estén corriendo y estables y el `order-service` mue
 
 4. **Consulta los logs:** En la terminal donde ejecustaste `docker-compose up -- build`, debes ver un mensaje del `order-service` confirmando que el pedido fue enviado a la cola de RabbitMQ
 
-5. **Verifica RabbitMQ (opcional):** Accede a la interfaz web de RabbitMQ en `http://localhost:15672`
-        - Ingresa usuario: user
-        - Ingresa contraseña: password
-        - Dirigete a la petaña de **"QUEUES"** Y comprueba que la cola `order_created_queue` tiene mensajes en la columna "Ready"
+5. **Verifica RabbitMQ (opcional):** Accede a la interfaz web de RabbitMQ en `http://localhost:15672`.
+
+        1.  Ingresa usuario: user
+        2.  Ingresa contraseña: password
+        3.  Dirigete a la petaña de **QUEUES** Y comprueba que la cola `order_created_queue` tiene mensajes en la columna `Ready`
 
 <p style="text-align: right;">
   <a href="#readme-top">volver arriba</a>
